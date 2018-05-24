@@ -85,6 +85,7 @@ namespace p2psp {
 
     virtual void Init();
 
+	std::string RESTSplitter(std::string channel_url);
     virtual void        SetSplitterAddr(ip::address splitter_addr);
     virtual ip::address GetSplitterAddr();
     static  ip::address GetDefaultSplitterAddr();
