@@ -576,36 +576,24 @@ namespace p2psp {
   
   
   std::string Peer_core::RESTSplitter(std::string channel_url) {
-	  std::string req ("GET /channel/"+channel_url);
-	  
-	  
-	  ip::tcp::resolver resolver();
-	  
-	  ip::tcp::socket rest;
-	  ip::tcp::endpoint source_ep(ip::address::from_string("127.0.0.1"),3000);
-	  rest->connect(source_ep);
-	  
-	  boost::asio::io_service& io_service;
-    boost::asio::ip::tcp::socket socket;
-	  boost::asio::ip::tcp::resolver resolver(io_service);
-      boost::asio::ip::tcp::resolver::iterator endpoint = resolver.resolve(boost::asio::ip::tcp::resolver::query(host, port));
-      boost::asio::connect(rest, endpoint);
-      
-      rest.send(boost::asio::buffer(req))
-	  
-	  boost::asio::write
-      (rest,
-       boost::asio::buffer(req,req.length())
-       );
-	  
-	  boost::asio::streambuf request;
-	  
-	  std::string data="";
-	  while(boost::asio::read(rest,request)){
-		  data=data+&request+"\n";
-	  }
-	  
-	  return data;	  
+	boost::system::error_code ec;  
+    io_service svc;
+    ip::tcp::socket rest(svc);
+    rest.connect({ {}, 3000 });
+    std::string request("GET /channel/"+channel_url+" HTTP/1.1\r\n\r\n");
+    rest.send(buffer(request));
+    std::string data;
+
+    do {
+        char buf[1024];
+        size_t bytes_transferred = rest.receive(buffer(buf), {}, ec);
+        if (!ec) data.append(buf, buf + bytes_transferred);
+    } while (!ec);
+    
+    int split=data.find("\"splitterAddress\":\"")+19;
+    int next_split=data.find("\"",split);
+    data=data.substr(split,next_split-split);
+	return data;	  
   }
 
   uint16_t Peer_core::GetSplitterPort() {
