@@ -68,6 +68,7 @@ namespace p2psp {
     int GetSourcePort();
     int GetSendToCounter();
     bool isSmartSourceClient() const;
+    virtual int GetPeerListSize();
 
     // Setters
     void SetAlive(bool alive);
