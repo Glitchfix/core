@@ -412,6 +412,9 @@ void Splitter_core::AcceptSourceConnection() {
 
   /* This method must be implemented in a descending class. */
   void Splitter_core::HandleAPeerArrival(std::shared_ptr<boost::asio::ip::tcp::socket>) {}
+  
+  /* This method must be implemented in a descending class. */
+  int Splitter_core::GetPeerListSize() {}
 
   void Splitter_core::HandleArrivals() {
     // {{{

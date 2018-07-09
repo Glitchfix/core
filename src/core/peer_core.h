@@ -24,6 +24,7 @@
 #include <vector>
 #include "../util/trace.h"
 #include "common.h"
+#include <boost/property_tree/json_parser.hpp>
 
 using namespace boost::asio;
 
@@ -45,8 +46,12 @@ namespace p2psp {
     static const int kChunkIndexSize = 2;
 
     ip::address splitter_addr_;
+    std::vector<ip::address> splitter_addr_list;
     uint16_t splitter_port_;
+    std::vector<uint16_t> splitter_port_list;
     uint16_t team_port_;
+    bool set_addr;
+    bool set_port;
     bool use_localhost_;
     int buffer_status_;
     int sendto_counter_; // Initialized to -1 in clases that don't use it
@@ -77,6 +82,7 @@ namespace p2psp {
     //int header_length_;
     //boost::array<char, 80> channel_;
     Chunk *chunk_ptr;
+    std::vector<boost::property_tree::ptree> splitters;
 
   public:
 
@@ -86,10 +92,10 @@ namespace p2psp {
     virtual void Init();
 
 	virtual std::string RESTSplitter(std::string channel_url);
-    virtual void        SetSplitterAddr(ip::address splitter_addr);
+    virtual void        SetSplitterAddr(std::vector<ip::address> splitter_addr);
     virtual ip::address GetSplitterAddr();
     static  ip::address GetDefaultSplitterAddr();
-    virtual void        SetSplitterPort(uint16_t);
+    virtual void        SetSplitterPort(std::vector<uint16_t> splitter_port);
     static  uint16_t    GetDefaultSplitterPort();
     virtual uint16_t    GetSplitterPort();
     virtual void        ConnectToTheSplitter() throw(boost::system::system_error);

@@ -40,6 +40,8 @@ namespace p2psp {
     //player_port_ = kPlayerPort;
     splitter_addr_ = ip::address::from_string(kSplitterAddr);
     splitter_port_ = kSplitterPort;
+    set_addr=false;
+    set_port=false;
     team_port_ = kTeamPort;
     use_localhost_ = kUseLocalhost;
     //buffer_status_ = kBufferStatus;
@@ -76,7 +78,20 @@ namespace p2psp {
     // {{{
 
     std::string my_ip;
-
+    int i = 0;
+    iter:
+    i++;
+    std::cout<<"\n"<<i<<"\n";
+    if(set_addr) {
+		splitter_addr_= splitter_addr_list[i];
+	}
+    if(set_port) {
+		splitter_port_ = splitter_port_list[i];		
+	}
+    std::cout<<GetSplitterAddr()<<":"<<GetSplitterPort()<<" "<<set_addr<<set_port<<std::endl;
+    for(auto const&c:splitter_port_list){
+		std::cout<<c<<',';
+	}
     // TCP endpoint object to connect to splitter
     ip::tcp::endpoint splitter_tcp_endpoint(splitter_addr_, splitter_port_);
 
@@ -93,11 +108,13 @@ namespace p2psp {
       my_ip = "0.0.0.0";
     } else {
       ip::udp::socket s(io_service_);
-      try {
-        s.connect(splitter_);
-      } catch (boost::system::system_error e) {
-        ERROR(e.what());
-      }
+      boost::system::error_code ec;
+      s.connect(splitter_,ec);
+      if(ec) {
+		  std::cout<<"GRIM";
+		  if (i<splitter_addr_list.size()) goto iter;
+		  ERROR(e.what());
+	  }
 
       my_ip = s.local_endpoint().address().to_string();
       s.close();
@@ -558,19 +575,21 @@ namespace p2psp {
   }
 
   //void Peer_core::SetSplitterAddr(std::string splitter_addr) {
-  void Peer_core::SetSplitterAddr(ip::address splitter_addr) {
+  void Peer_core::SetSplitterAddr(std::vector<ip::address> splitter_addr) {
     // {{{
 
-    splitter_addr_ = splitter_addr;//ip::address::from_string(splitter_addr);
+    splitter_addr_list=splitter_addr;
+    set_addr=true;
 
     // }}}
   }
 
-  void Peer_core::SetSplitterPort(uint16_t splitter_port) {
+  void Peer_core::SetSplitterPort(std::vector<uint16_t> splitter_port) {
     // {{{
 
-    splitter_port_ = splitter_port;
-
+    splitter_port_list=splitter_port;
+    set_port=true;
+    
     // }}}
   }
   
@@ -579,21 +598,35 @@ namespace p2psp {
 	boost::system::error_code ec;  
     io_service svc;
     ip::tcp::socket rest(svc);
-    rest.connect({ {}, 3000 });
-    std::string request("GET /channel/"+channel_url+" HTTP/1.1\r\n\r\n");
+    
+	int del = channel_url.find_first_of(":");
+	std::string protocol=channel_url.substr(0,del); 
+
+	channel_url=channel_url.substr(del+3); //url_new is the url excluding the http part
+	del =channel_url.find_first_of(":");
+	std::string host =channel_url.substr(0,del);
+
+	int del2 = channel_url.find_first_of("/");
+	uint16_t port =std::stoi(channel_url.substr(del+1,del2-del-1));
+	std::string path =channel_url.substr(del2);
+
+    
+    rest.connect({ ip::address::from_string(host), port });
+    std::string request("GET "+path+" HTTP/1.1\r\n\r\n");
     rest.send(buffer(request));
     std::string data;
-
     do {
         char buf[1024];
         size_t bytes_transferred = rest.receive(buffer(buf), {}, ec);
         if (!ec) data.append(buf, buf + bytes_transferred);
     } while (!ec);
-    
-    int split=data.find("\"splitterAddress\":\"")+19;
-    int next_split=data.find("\"",split);
-    data=data.substr(split,next_split-split);
+    int split=data.find("{");
+    data=data.substr(split);
 	return data;	  
+  }
+  
+  void setSplitterlist(boost::property_tree::ptree d){
+	  
   }
 
   uint16_t Peer_core::GetSplitterPort() {

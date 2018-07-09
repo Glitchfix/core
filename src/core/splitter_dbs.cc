@@ -138,6 +138,11 @@ namespace p2psp {
     */
 
     asio::ip::tcp::endpoint incoming_peer = serve_socket->remote_endpoint();
+    if(this->peer_list_.size() >= 3) {
+		TRACE("Maximuum limit reached rejected connection from peer"
+		  << incoming_peer);
+		return;
+	}
 
 #if defined __D_CHURN__
     TRACE("Accepted connection from peer "
@@ -499,7 +504,7 @@ namespace p2psp {
 
     // }}}
   }
-
+  
   int Splitter_DBS::GetLoss(const boost::asio::ip::udp::endpoint &peer) {
     // {{{
 
