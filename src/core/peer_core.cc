@@ -149,7 +149,6 @@ namespace p2psp {
     try{
     splitter_socket_.connect(splitter_tcp_endpoint);
     } catch (boost::system::system_error ex) {
-		std::cout<<"edsad";
 		if (i<splitter_addr_list.size()) goto iter;	
 
 	}
