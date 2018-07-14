@@ -141,6 +141,7 @@ namespace p2psp {
     if(this->peer_list_.size() >= 3) {
 		TRACE("Maximuum limit reached rejected connection from peer"
 		  << incoming_peer);
+		throw boost::system::system_error;
 		return;
 	}
 

@@ -98,7 +98,7 @@ namespace p2psp {
     virtual void        SetSplitterPort(std::vector<uint16_t> splitter_port);
     static  uint16_t    GetDefaultSplitterPort();
     virtual uint16_t    GetSplitterPort();
-    virtual void        ConnectToTheSplitter() throw(boost::system::system_error);
+    virtual void        ConnectToTheSplitter(); //throw(boost::system::system_error);
     virtual void        DisconnectFromTheSplitter();
     std::string GetSourceAddr();
     uint16_t GetSourcePort();

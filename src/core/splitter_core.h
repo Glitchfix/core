@@ -80,6 +80,7 @@ namespace p2psp {
     void SetSourcePort(int source_port);
     void SetGETMessage(std::string channel);
     void setSmartSourceClient(bool isSmart);
+    void SetMaxNumberOfPeers(unsigned int port);
 
     // Default getters
     static int GetDefaultChunkSize();
@@ -109,6 +110,7 @@ namespace p2psp {
     std::string source_addr_;
     unsigned short source_port_;
     int header_size_;
+    int max_number_of_peer_;
 
     /*
       An splitter runs 2 threads. The main one serves the chunks to

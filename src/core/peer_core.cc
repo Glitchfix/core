@@ -74,24 +74,21 @@ namespace p2psp {
   void Peer_core::Init() {
   };
 
-  void Peer_core::ConnectToTheSplitter() throw(boost::system::system_error) {
+  void Peer_core::ConnectToTheSplitter() {
     // {{{
 
     std::string my_ip;
-    int i = 0;
+    int i = -1;
     iter:
     i++;
-    std::cout<<"\n"<<i<<"\n";
     if(set_addr) {
 		splitter_addr_= splitter_addr_list[i];
 	}
     if(set_port) {
 		splitter_port_ = splitter_port_list[i];		
 	}
-    std::cout<<GetSplitterAddr()<<":"<<GetSplitterPort()<<" "<<set_addr<<set_port<<std::endl;
-    for(auto const&c:splitter_port_list){
-		std::cout<<c<<',';
-	}
+    TRACE("Trying Splitter = "<<GetSplitterAddr()<<":"<<GetSplitterPort());
+
     // TCP endpoint object to connect to splitter
     ip::tcp::endpoint splitter_tcp_endpoint(splitter_addr_, splitter_port_);
 
@@ -111,7 +108,6 @@ namespace p2psp {
       boost::system::error_code ec;
       s.connect(splitter_,ec);
       if(ec) {
-		  std::cout<<"GRIM";
 		  if (i<splitter_addr_list.size()) goto iter;
 		  ERROR(e.what());
 	  }
@@ -120,7 +116,11 @@ namespace p2psp {
       s.close();
     }
 
-    splitter_socket_.open(splitter_tcp_endpoint.protocol());
+    try{
+		splitter_socket_.open(splitter_tcp_endpoint.protocol());
+	} catch (boost::system::system_error ex) {
+		ERROR(e.what());
+	}
 
 #if defined __D_TRAFFIC__
     TRACE("Connecting to the splitter at ("
@@ -142,19 +142,24 @@ namespace p2psp {
       tcp_endpoint = ip::tcp::endpoint(ip::address::from_string(my_ip), 0);
     }
 
+    
     splitter_socket_.bind(tcp_endpoint);
 
     // Could throw an exception
+    try{
     splitter_socket_.connect(splitter_tcp_endpoint);
+    } catch (boost::system::system_error ex) {
+		std::cout<<"edsad";
+		if (i<splitter_addr_list.size()) goto iter;	
 
+	}
+    // }}}
+  }
 #if defined __D_TRAFFIC__
     TRACE("Connected to the splitter at ("
           << splitter_tcp_endpoint.address().to_string() << ","
           << std::to_string(splitter_tcp_endpoint.port()) << ")");
 #endif
-
-    // }}}
-  }
 
   void Peer_core::DisconnectFromTheSplitter() {
     // {{{
